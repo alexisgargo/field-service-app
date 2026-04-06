@@ -1,16 +1,9 @@
-# field_service_app
+# Demo Ditto
 
-A new Flutter project.
+Contains two separate projects:
 
-## Getting Started
+- a mobile field service application in Flutter
+- a web application with a dashboard showing the existing entries
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+To run the mobile app execute `flutter run` — it's necessary to have flutter installed
+To run the web app execute `npm run dev` — it's necessary to have node installed

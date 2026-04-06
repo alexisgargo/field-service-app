@@ -1,0 +1,662 @@
+import React, { useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight, Search, Settings, Bell, Menu, User, X } from 'lucide-react';
+
+const FieldServiceDashboard = () => {
+  const [currentWeek, setCurrentWeek] = useState(new Date());
+  const [technicians, setTechnicians] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showNewOrderModal, setShowNewOrderModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [newOrder, setNewOrder] = useState({
+    customer_name: '',
+    customer_address: '',
+    equipment_model: '',
+    equipment_serial: '',
+    problem_description: '',
+    technician_id: '',
+    start_time: '',
+    status: 'pending'
+  });
+
+  // const pendingDate = new Date(0);
+
+  // API Configuration
+  // const API_BASE_URL = 'http://localhost:3000/api'; // Change this to your API URL
+    // const API_BASE_URL = 'https://gdf695890ce0f4a-csmongo.adb.ca-toronto-1.oraclecloudapps.com/ords/admin';
+    const API_BASE_URL = 'https://oraclejson.com:8080/ords/scott';
+
+  // Load data from API on mount
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  // Auto-refresh every X seconds (e.g., 10 seconds)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadData();
+    }, 5000); // <-- change 10000 to whatever interval you want (ms)
+
+    return () => clearInterval(interval);
+  }, []);
+
+
+  const loadData = async () => {
+    try {
+      // setLoading(true);
+      
+      // Fetch technicians
+      const techResponse = await (await fetch(`${API_BASE_URL}/technicians/`)).json();
+      const techData = techResponse.items;
+      // console.log(techData);
+      setTechnicians(techData);
+
+      // Fetch orders
+      const ordersResponse = await (await fetch(`${API_BASE_URL}/workorders/`)).json();
+      const ordersData = ordersResponse.items;
+      // console.log(ordersData);
+      setOrders(ordersData);
+
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      // Fallback to sample data if API fails
+      // loadSampleData();
+      // setLoading(false);
+    }
+  };
+/*
+  const loadSampleData = () => {
+    const sampleTechs = [
+      { id: '1', name: "Chiara Novak" },
+      { id: '2', name: "Dallas Lee" },
+      { id: '3', name: "Leo Green" },
+      { id: '4', name: "Michele Scotti" },
+      { id: '5', name: "Natalie O'Hara" },
+      { id: '6', name: "Robin Woods" },
+      { id: '7', name: "Sadia Bynum" },
+      { id: '8', name: "Thea Teixeira" }
+    ];
+
+    const sampleOrders = [
+      { id: '1', technician_id: '2', start_time: '2025-11-17T08:00:00', customer_name: "ABC Corp", equipment_model: "Boiler X200", problem_description: "Heating maintenance", status: "scheduled", customer_address: "123 Main St", equipment_serial: "BX200-001" },
+      { id: '2', technician_id: '2', start_time: '2025-11-17T13:00:00', customer_name: "Tech Industries", equipment_model: "Boiler X300", problem_description: "Annual service", status: "scheduled", customer_address: "456 Oak Ave", equipment_serial: "BX300-002" },
+      { id: '3', technician_id: '4', start_time: '2025-11-17T09:00:00', customer_name: "Green Solutions", equipment_model: "HVAC Pro", problem_description: "Installation", status: "in_progress", customer_address: "789 Pine Rd", equipment_serial: "HP-003" },
+      { id: '4', technician_id: '6', start_time: '2025-11-17T10:00:00', customer_name: "SecureTech", equipment_model: "Alarm System", problem_description: "Maintenance check", status: "scheduled", customer_address: "321 Elm St", equipment_serial: "AS-004" },
+      { id: '5', technician_id: '7', start_time: '2025-11-17T00:00:00', customer_name: "Various", equipment_model: "N/A", problem_description: "On call duty", status: "on_call", customer_address: "Various", equipment_serial: "N/A" },
+      { id: '6', technician_id: '1', start_time: '2025-11-18T08:00:00', customer_name: "City Building", equipment_model: "Pipe System", problem_description: "Installation", status: "scheduled", customer_address: "111 Broadway", equipment_serial: "PS-005" },
+      { id: '7', technician_id: '4', start_time: '2025-11-18T14:00:00', customer_name: "Smart Homes", equipment_model: "Thermostat Pro", problem_description: "Installation", status: "scheduled", customer_address: "222 Park Ave", equipment_serial: "TP-006" },
+      { id: '8', technician_id: '5', start_time: '2025-11-18T09:00:00', customer_name: "Aqua Corp", equipment_model: "Water Heater", problem_description: "Installation", status: "scheduled", customer_address: "333 Lake St", equipment_serial: "WH-007" },
+      { id: '9', technician_id: '7', start_time: '2025-11-18T00:00:00', customer_name: "Various", equipment_model: "N/A", problem_description: "On call duty", status: "on_call", customer_address: "Various", equipment_serial: "N/A" },
+      { id: '10', technician_id: '1', start_time: '2025-11-19T10:00:00', customer_name: "Metro Buildings", equipment_model: "Pipe System Pro", problem_description: "Installation", status: "scheduled", customer_address: "555 Hill St", equipment_serial: "PSP-008" },
+      { id: '11', technician_id: '3', start_time: '2025-11-19T08:00:00', customer_name: "Comfort Living", equipment_model: "Heating Unit", problem_description: "Installation", status: "scheduled", customer_address: "666 Valley Dr", equipment_serial: "HU-009" },
+      { id: '12', technician_id: '5', start_time: '2025-11-19T07:00:00', customer_name: "Solar Power Co", equipment_model: "Solar Panel", problem_description: "Installation", status: "scheduled", customer_address: "777 Summit Ave", equipment_serial: "SP-010" },
+      { id: '13', technician_id: '7', start_time: '2025-11-19T00:00:00', customer_name: "Various", equipment_model: "N/A", problem_description: "On call duty", status: "on_call", customer_address: "Various", equipment_serial: "N/A" },
+      { id: '14', technician_id: '2', start_time: '2025-11-20T09:00:00', customer_name: "Cool Air Inc", equipment_model: "AC Unit", problem_description: "Maintenance", status: "scheduled", customer_address: "999 Forest Ln", equipment_serial: "AC-011" },
+      { id: '15', technician_id: '5', start_time: '2025-11-20T08:00:00', customer_name: "Green Energy", equipment_model: "Solar Panel Pro", problem_description: "Installation", status: "scheduled", customer_address: "101 Beach Rd", equipment_serial: "SPP-012" }
+    ];
+
+    setTechnicians(sampleTechs);
+    setOrders(sampleOrders);
+  };*/
+
+  const getWeekDates = () => {
+    const start = new Date(currentWeek);
+    start.setDate(start.getDate() - start.getDay());
+    
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(start);
+      date.setDate(date.getDate() + i);
+      dates.push(date);
+    }
+    return dates;
+  };
+
+  const weekDates = getWeekDates();
+  const weekStart = weekDates[0];
+  const weekEnd = weekDates[6];
+
+  const formatDate = (date) => {
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const getDayName = (date) => {
+    return date.toLocaleDateString('en-US', { weekday: 'long' });
+  };
+
+  const getDayNumber = (date) => {
+    return date.getDate();
+  };
+
+  const isSameDay = (date1, date2) => {
+    // console.log(typeof(date2));
+    return date1.getFullYear() === date2.getFullYear() &&
+           date1.getMonth() === date2.getMonth() &&
+           date1.getDate() === date2.getDate();
+  };
+
+  const getOrdersForTechAndDay = (techId, date) => {
+    // console.log(orders.forEach((order) => console.log(order.status)));
+    return orders.filter(order => {
+      order = order.data;
+      // console.log(order);
+      if (order.technician_id !== techId) return false;
+      // if (!order.start_time) return false;
+      // console.log(order);
+      const lastDate = order.completion_time ?? order.start_time ?? order.updated_at;
+      
+      // console.log(date);
+      // if (order.completion_time != null) orderDate = new Date(order.completion_time);
+      // else if (orderDate.start_time != null) orderDate = new Date(order.start_time);
+      // else orderDate = new Date(order.updated_at);
+      const orderDate = new Date(lastDate);
+      return isSameDay(orderDate, date);
+    });
+  };
+
+  const getStatusColor = (status) => {
+    const colors = {
+      "pending": 'bg-orange-600',
+      "in_progress": 'bg-blue-500',
+      "completed": 'bg-green-600',
+      'cancelled': 'bg-red-600'
+    };
+    return colors[status] || 'bg-gray-200';
+  };
+
+  const getInitials = (name) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
+  const navigateWeek = (direction) => {
+    const newDate = new Date(currentWeek);
+    newDate.setDate(newDate.getDate() + (direction * 7));
+    setCurrentWeek(newDate);
+  };
+
+  const handleCreateOrder = async () => {
+    // console.log(newOrder);
+    if (!newOrder.customer_name || !newOrder.technician_id || !newOrder.start_time) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    let maxNumber = 0;
+
+  orders.forEach(order => {
+    // const num = parseInt(order.data._id.replace("wo_", ""), 10);
+    if (!isNaN(num) && num > maxNumber) {
+      maxNumber = num;
+    }
+  });
+
+  const nextNumber = String(maxNumber + 1).padStart(3, "0");
+
+    const orderData = {
+      _id: `wo_${nextNumber}`,
+      customer_name: newOrder.customer_name,
+      customer_address: newOrder.customer_address,
+      equipment_model: newOrder.equipment_model,
+      equipment_serial: newOrder.equipment_serial,
+      problem_description: newOrder.problem_description,
+      technician_id: newOrder.technician_id,
+      start_time: newOrder.start_time,
+      status: newOrder.status,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    // console.log(orderData);
+
+    try {
+      // console.log(orderData);
+      const response = await fetch(`${API_BASE_URL}/workorders/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData)
+      });
+
+      console.log(await response.json());
+
+      const createdOrder = await response.json();
+      setOrders([...orders, createdOrder]);
+      setShowNewOrderModal(false);
+      setNewOrder({
+        customer_name: '',
+        customer_address: '',
+        equipment_model: '',
+        equipment_serial: '',
+        problem_description: '',
+        technician_id: '',
+        start_time: '',
+        status: 'scheduled'
+      });
+    } catch (error) {
+      console.error('Error creating order:', error);
+      // Fallback: add order locally
+      const order = {
+        id: String(orders.length + 1),
+        ...orderData
+      };
+      setOrders([...orders, order]);
+      setShowNewOrderModal(false);
+      setNewOrder({
+        customer_name: '',
+        customer_address: '',
+        equipment_model: '',
+        equipment_serial: '',
+        problem_description: '',
+        technician_id: '',
+        start_time: '',
+        status: 'scheduled'
+      });
+    }
+  };
+
+  const handleDeleteOrder = async (orderId) => {
+    try {
+      await fetch(`${API_BASE_URL}/workorders/${orderId}/`, {
+        method: 'DELETE'
+      });
+      setOrders(orders.filter(o => o.id !== orderId));
+      setSelectedOrder(null);
+    } catch (error) {
+      console.error('Error deleting order:', error);
+      // Fallback: delete locally
+      setOrders(orders.filter(o => o.id !== orderId));
+      setSelectedOrder(null);
+    }
+  };
+
+  const handleUpdateOrderStatus = async (orderId, newStatus) => {
+    try {
+      await fetch(`${API_BASE_URL}/workorders/${orderId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: newStatus,
+          updated_at: new Date().toISOString(),
+          ...(newStatus === 'completed' ? { completion_time: new Date().toISOString() } : {})
+        })
+      });
+      
+      setOrders(orders.map(o => 
+        o.id === orderId 
+          ? { ...o, status: newStatus, updated_at: new Date().toISOString(), ...(newStatus === 'completed' ? { completion_time: new Date().toISOString() } : {}) }
+          : o
+      ));
+      
+      if (selectedOrder && selectedOrder.id === orderId) {
+        setSelectedOrder({ ...selectedOrder, status: newStatus });
+      }
+    } catch (error) {
+      console.error('Error updating order:', error);
+      // Fallback: update locally
+      setOrders(orders.map(o => 
+        o.id === orderId 
+          ? { ...o, status: newStatus, updated_at: new Date().toISOString() }
+          : o
+      ));
+      if (selectedOrder && selectedOrder.id === orderId) {
+        setSelectedOrder({ ...selectedOrder, status: newStatus });
+      }
+    }
+  };
+
+  const filteredTechnicians = technicians.filter(tech =>
+    tech.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // if (loading) {
+  //   return (
+  //     <div className="h-screen flex items-center justify-center">
+  //       <div className="text-lg">Loading...</div>
+  //     </div>
+  //   );
+  // }
+
+  return (
+    <div className="h-screen w-screen flex flex-col bg-gray-50 text-gray-600">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-pink-500 rounded"></div>
+            <span className="font-semibold text-lg">Field Service</span>
+          </div>
+          <nav className="flex gap-6 text-sm">
+            {/* <a href="#" className="text-gray-600 hover:text-gray-900">My Orders</a> */}
+            <a href="#" className="text-gray-900 font-medium border-b-2 border-purple-600 pb-1">All Orders</a>
+            {/* <a href="#" className="text-gray-600 hover:text-gray-900">Planning</a>
+            <a href="#" className="text-gray-600 hover:text-gray-900">Reporting</a>
+            <a href="#" className="text-gray-600 hover:text-gray-900">Configuration</a> */}
+          </nav>
+        </div>
+        {/* <div className="flex items-center gap-4">
+          <div className="relative">
+            <Bell className="w-5 h-5 text-gray-600" />
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">1</span>
+          </div>
+          <button className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+            <User className="w-5 h-5 text-gray-600" />
+          </button>
+        </div> */}
+      </header>
+
+      {/* Toolbar */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => setShowNewOrderModal(true)}
+            className="bg-purple-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-purple-700"
+          >
+            New Order
+          </button>
+          <div className="flex items-center gap-2 text-sm">
+            <span className="font-medium">All Orders</span>
+            <Settings className="w-4 h-4 text-gray-500" />
+          </div>
+        </div>
+        {/* <div className="flex items-center gap-4">
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search technicians..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded text-sm w-80 focus:outline-none focus:ring-2 focus:ring-purple-600"
+            />
+          </div>
+          <Menu className="w-5 h-5 text-gray-600" />
+        </div> */}
+      </div>
+
+      {/* Week Navigation */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
+        <button className="px-4 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 text-white">
+          Today
+        </button>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => navigateWeek(-1)}
+            className="p-2 hover:bg-gray-100 rounded"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <span className="text-sm font-medium px-4 text-gray-600">Week</span>
+          <button 
+            onClick={() => navigateWeek(1)}
+            className="p-2 hover:bg-gray-100 rounded"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+        <span className="text-sm text-gray-600">
+          {formatDate(weekStart)} - {formatDate(weekEnd)}
+        </span>
+      </div>
+
+      {/* Calendar Grid */}
+      <div className="flex-1 overflow-auto">
+        <div className="min-w-full bg-white">
+          {/* Header Row */}
+          <div className="grid grid-cols-8 bg-white border-b border-gray-200 sticky top-0 z-10">
+            <div className="p-4 font-medium text-sm border-r border-gray-200">Technician</div>
+            {weekDates.map((date, idx) => (
+              <div key={idx} className="p-4 text-center border-r border-gray-200">
+                <div className="font-medium text-sm">{getDayName(date).split(',')[0]}, {getDayNumber(date)}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Unassigned Orders Row */}
+          {/* <div className="grid grid-cols-8 border-b border-gray-200 bg-gray-50">
+            <div className="p-4 text-sm text-gray-600 border-r border-gray-200">Unassigned</div>
+            {weekDates.map((_, idx) => (
+              <div key={idx} className="p-4 border-r border-gray-200 min-h-20"></div>
+            ))}
+          </div> */}
+
+          {/* Technician Rows */}
+          {filteredTechnicians.map((tech) => (
+            <div key={tech.id} className="grid grid-cols-8 border-b border-gray-200 hover:bg-gray-50">
+              <div className="p-4 border-r border-gray-200 flex items-center gap-3 bg-green-50">
+                <div className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-medium">
+                  {getInitials(tech.name)}
+                </div>
+                <span className="text-sm font-medium">{tech.name}</span>
+              </div>
+              {weekDates.map((date, dayIdx) => (
+                <div key={dayIdx} className="p-2 border-r border-gray-200 min-h-20">
+                  <div className="flex flex-col gap-2">
+                    {getOrdersForTechAndDay(tech.id, date).map((order) => (
+                      <button
+                        key={order.data.id}
+                        onClick={() => setSelectedOrder(order.data)}
+                        className={`${getStatusColor(order.data.status)} text-gray-200 p-2 rounded text-xs text-left hover:opacity-80 transition-opacity  `}
+                      >
+                        <div className="font-medium">{order.data.customer_name}</div>
+                        <div className="text-gray-200">{order.data.equipment_model}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              {/* <div key={dayIdx} className="p-2 border-r border-gray-200 min-h-20">
+                  <div className="flex flex-col gap-2">
+                    {getOrdersForTechAndDay(tech.id, date).map((order) => (
+                      <button
+                        key={order.id}
+                        onClick={() => setSelectedOrder(order)}
+                        className={`${getStatusColor(order.status)} text-gray-200 p-2 rounded text-xs text-left hover:opacity-80 transition-opacity  `}
+                      >
+                        <div className="font-medium">{order.customer_name}</div>
+                        <div className="text-gray-200">{order.equipment_model}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div> */}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* New Order Modal */}
+      {showNewOrderModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30 overflow-y-auto">
+          <div className="bg-white rounded-lg p-6 w-[500px] my-8">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Create New Order</h3>
+              <button onClick={() => setShowNewOrderModal(false)}>
+                <X className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Customer Name*</label>
+                <input
+                  type="text"
+                  value={newOrder.customer_name}
+                  onChange={(e) => setNewOrder({...newOrder, customer_name: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-600"
+                  placeholder="Enter customer name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Customer Address</label>
+                <input
+                  type="text"
+                  value={newOrder.customer_address}
+                  onChange={(e) => setNewOrder({...newOrder, customer_address: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-600"
+                  placeholder="Enter address"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Equipment Model</label>
+                  <input
+                    type="text"
+                    value={newOrder.equipment_model}
+                    onChange={(e) => setNewOrder({...newOrder, equipment_model: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    placeholder="Model"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Serial Number</label>
+                  <input
+                    type="text"
+                    value={newOrder.equipment_serial}
+                    onChange={(e) => setNewOrder({...newOrder, equipment_serial: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    placeholder="Serial"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Problem Description</label>
+                <textarea
+                  value={newOrder.problem_description}
+                  onChange={(e) => setNewOrder({...newOrder, problem_description: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-600"
+                  placeholder="Describe the problem"
+                  rows="3"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Assign to Technician*</label>
+                <select
+                  value={newOrder.technician_id}
+                  onChange={(e) => setNewOrder({...newOrder, technician_id: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-600"
+                >
+                  <option value="">Select technician</option>
+                  {technicians.map(tech => (
+                    <option key={tech.id} value={tech.id}>{tech.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Start Time*</label>
+                <input
+                  type="datetime-local"
+                  value={newOrder.start_time}
+                  onChange={(e) => setNewOrder({...newOrder, start_time: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-600"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select
+                  value={newOrder.status}
+                  onChange={(e) => setNewOrder({...newOrder, status: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-600"
+                >
+                  <option value="pending">Pending</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button
+                  onClick={handleCreateOrder}
+                  className="flex-1 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
+                >
+                  Create Order
+                </button>
+                <button
+                  onClick={() => setShowNewOrderModal(false)}
+                  className="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Order Detail Sidebar */}
+      {selectedOrder && (
+        <div className="fixed right-0 top-0 h-full w-96 bg-white shadow-xl border-l border-gray-200 p-6 z-20 overflow-y-auto">
+          <div className="flex justify-between items-start mb-4">
+            <h3 className="font-semibold text-lg">Order Details</h3>
+            <button onClick={() => setSelectedOrder(null)} className="text-gray-400 hover:text-gray-600">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="space-y-4 text-sm">
+            <div>
+              <span className="text-gray-600 font-medium">Customer:</span>
+              <div className="mt-1">{selectedOrder.customer_name}</div>
+            </div>
+            <div>
+              <span className="text-gray-600 font-medium">Address:</span>
+              <div className="mt-1">{selectedOrder.customer_address}</div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <span className="text-gray-600 font-medium">Equipment:</span>
+                <div className="mt-1">{selectedOrder.equipment_model}</div>
+              </div>
+              <div>
+                <span className="text-gray-600 font-medium">Serial:</span>
+                <div className="mt-1">{selectedOrder.equipment_serial}</div>
+              </div>
+            </div>
+            <div>
+              <span className="text-gray-600 font-medium">Problem:</span>
+              <div className="mt-1">{selectedOrder.problem_description}</div>
+            </div>
+            <div>
+              <span className="text-gray-600 font-medium">Technician:</span>
+              <div className="mt-1">{technicians.find(t => t.id === selectedOrder.technician_id)?.name}</div>
+            </div>
+            <div>
+              <span className="text-gray-600 font-medium">Start Time:</span>
+              <div className="mt-1">{selectedOrder.start_time ? new Date(selectedOrder.start_time).toLocaleString() : 'Not set'}</div>
+            </div>
+            <div>
+              <span className="text-gray-600 font-medium">Status:</span>
+              <div className="mt-2">
+                <select
+                  value={selectedOrder.status}
+                  onChange={(e) => handleUpdateOrderStatus(selectedOrder.id, e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-600"
+                >
+                  <option value="scheduled">Scheduled</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="completed">Completed</option>
+                  <option value="on_call">On Call</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+            </div>
+            {selectedOrder.completion_time && (
+              <div>
+                <span className="text-gray-600 font-medium">Completed:</span>
+                <div className="mt-1">{new Date(selectedOrder.completion_time).toLocaleString()}</div>
+              </div>
+            )}
+            <button
+              onClick={() => handleDeleteOrder(selectedOrder.id)}
+              className="w-full mt-6 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+            >
+              Delete Order
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default FieldServiceDashboard;

@@ -95,14 +95,9 @@ class DittoService {
       );
 
       _ditto!.updateTransportConfig((config) {
-        // Note: this will not enable peer-to-peer sync on the web platform
         config.setAllPeerToPeerEnabled(true);
         config.connect.webSocketUrls.add("wss://3b9ae71.cloud.dittolive.app");
       });
-
-      // print(_ditto!.isSyncActive);
-
-      // await _ditto!.store.execute('ALTER SYSTEM SET DQL_STRICT_MODE = false');
 
       // Check initial network connectivity
       await _checkNetworkConnectivity();
@@ -349,6 +344,8 @@ class DittoService {
       final result = await _ditto!.store.execute(
         "SELECT * FROM workorders ORDER BY createdAt DESC",
       );
+
+      // final result = await _ditto!.store.execute("delete FROM workorders");
 
       final workOrders = result.items
           .map((item) => WorkOrder.fromJson(item.value))

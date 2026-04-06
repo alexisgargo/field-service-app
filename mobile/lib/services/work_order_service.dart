@@ -259,19 +259,19 @@ class WorkOrderService {
 
       case WorkOrderStatus.completed:
         // When completing work, ensure we have a start time
-        if (currentWorkOrder.startTime == null) {
-          throw StateError(
-            'Cannot complete work order ${currentWorkOrder.id} without a start time. '
-            'Work must be started before it can be completed.',
-          );
-        }
+        // if (currentWorkOrder.startTime == null) {
+        //   throw StateError(
+        //     'Cannot complete work order ${currentWorkOrder.id} without a start time. '
+        //     'Work must be started before it can be completed.',
+        //   );
+        // }
 
         // Ensure completion time would be after start time
-        if (currentWorkOrder.startTime!.isAfter(now)) {
-          throw StateError(
-            'Cannot complete work order ${currentWorkOrder.id} before it was started',
-          );
-        }
+        // if (currentWorkOrder.startTime!.isAfter(now)) {
+        //   throw StateError(
+        //     'Cannot complete work order ${currentWorkOrder.id} before it was started',
+        //   );
+        // }
         break;
 
       case WorkOrderStatus.pending:
